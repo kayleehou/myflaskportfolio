@@ -1,12 +1,9 @@
 """ database dependencies to support sqliteDB examples """
 from random import randrange
-from datetime import date
 import os, base64
 import json
-
 from __init__ import app, db
 from sqlalchemy.exc import IntegrityError
-from werkzeug.security import generate_password_hash, check_password_hash
 
 
 ''' Tutorial: https://www.sqlalchemy.org/library.html#tutorials, try to get into Python shell and follow along '''
@@ -74,76 +71,73 @@ class User(db.Model):
 
     # Define the User schema with "vars" from object
     id = db.Column(db.Integer, primary_key=True)
-    _name = db.Column(db.String(255), unique=False, nullable=False)
-    _uid = db.Column(db.String(255), unique=True, nullable=False)
-    _password = db.Column(db.String(255), unique=False, nullable=False)
-    _dob = db.Column(db.Date)
+    _firstName = db.Column(db.String(255), unique=False, nullable=False)
+    _lastName = db.Column(db.String(255), unique=False, nullable=False)
+    _extracurricular = db.Column(db.String(255), unique=False, nullable=False)
+    _hoursPerWeek = db.Column(db.String(255), unique=False, nullable=False)
+    _coachName = db.Column(db.String(255), unique=False, nullable=False)
 
     # Defines a relationship between User record and Notes table, one-to-many (one user to many notes)
     posts = db.relationship("Post", cascade='all, delete', backref='users', lazy=True)
 
     # constructor of a User object, initializes the instance variables within object (self)
-    def __init__(self, name, uid, password="123qwerty", dob=date.today()):
-        self._name = name    # variables with self prefix become part of the object, 
-        self._uid = uid
-        self.set_password(password)
-        self._dob = dob
+    def __init__(self, firstName, lastName, extracurricular, hoursPerWeek, coachName):
+        self._firstName = firstName    # variables with self prefix become part of the object, 
+        self._lastName= lastName
+        self._extracurricular= extracurricular 
+        self._hoursPerWeek = hoursPerWeek
+        self._coachName = coachName
 
     # a name getter method, extracts name from object
     @property
-    def name(self):
-        return self._name
+    def firstName(self):
+        return self._firstName
     
-    # a setter function, allows name to be updated after initial object creation
-    @name.setter
-    def name(self, name):
-        self._name = name
+    # first name setter 
+    @firstName.setter
+    def firstName(self, firstName):
+        self._firstName = firstName
     
-    # a getter method, extracts email from object
+    # last name getter 
     @property
-    def uid(self):
-        return self._uid
+    def lastName(self):
+        return self._lastName
     
-    # a setter function, allows name to be updated after initial object creation
-    @uid.setter
-    def uid(self, uid):
-        self._uid = uid
+    # last name setter 
+    @lastName.setter
+    def lastName(self, lastName):
+        self._lastName = lastName
+    
+    #extracurricular getter 
+    @property
+    def extracurricular(self):
+        return self._extracurricular
+    
+    #extracurricular setter
+    @extracurricular.setter
+    def extracurricular(self, extracurricular):
+        self._extracurricular = extracurricular
+    
+    #hours per week getter    
+    @property
+    def hoursPerWeek(self):
+        return self._hoursPerWeek
+    
+    # hoursPerWeek setter
+    @hoursPerWeek.setter
+    def hoursPerWeek(self, hoursPerWeek):
+        self._hoursPerWeek = hoursPerWeek
         
-    # check if uid parameter matches user id in object, return boolean
-    def is_uid(self, uid):
-        return self._uid == uid
-    
+    #coach name getter    
     @property
-    def password(self):
-        return self._password[0:10] + "..." # because of security only show 1st characters
+    def coachName(self):
+        return self._coachName
+    
+    # coach name setter
+    @coachName.setter
+    def coachName(self,coachName):
+        self._coachName = coachName
 
-    # update password, this is conventional setter
-    def set_password(self, password):
-        """Create a hashed password."""
-        self._password = generate_password_hash(password, method='sha256')
-
-    # check password parameter versus stored/encrypted password
-    def is_password(self, password):
-        """Check against hashed password."""
-        result = check_password_hash(self._password, password)
-        return result
-    
-    # dob property is returned as string, to avoid unfriendly outcomes
-    @property
-    def dob(self):
-        dob_string = self._dob.strftime('%m-%d-%Y')
-        return dob_string
-    
-    # dob should be have verification for type date
-    @dob.setter
-    def dob(self, dob):
-        self._dob = dob
-    
-    @property
-    def age(self):
-        today = date.today()
-        return today.year - self._dob.year - ((today.month, today.day) < (self._dob.month, self._dob.day))
-    
     # output content using str(object) in human readable form, uses getter
     # output content using json dumps, this is ready for API response
     def __str__(self):
@@ -161,28 +155,33 @@ class User(db.Model):
             db.session.remove()
             return None
 
-    # CRUD read converts self to dictionary
+    # CRUD read converts user to dictionary
     # returns dictionary
     def read(self):
         return {
             "id": self.id,
-            "name": self.name,
-            "uid": self.uid,
-            "dob": self.dob,
-            "age": self.age,
+            "firstName": self.firstName,
+            "lastName": self.lastName,
+            "extracurricular": self.extracurricular,
+            "hoursPerWeek": self.hoursPerWeek,
+            "coachName": self.coachName,
             "posts": [post.read() for post in self.posts]
         }
 
     # CRUD update: updates user name, password, phone
     # returns self
-    def update(self, name="", uid="", password=""):
+    def update(self, firstName="", lastName="", extracurricular="", hoursPerWeek="", coachName=""):
         """only updates values with length"""
-        if len(name) > 0:
-            self.name = name
-        if len(uid) > 0:
-            self.uid = uid
-        if len(password) > 0:
-            self.set_password(password)
+        if len(firstName) > 0:
+            self.firstName = firstName
+        if len(lastName) > 0:
+            self.lastName = lastName
+        if len(extracurricular) > 0:
+            self.extracurricular = extracurricular
+        if len(hoursPerWeek) > 0:
+            self.hoursPerWeek = hoursPerWeek
+        if len(coachName) > 0:
+            self.coachName = coachName
         db.session.commit()
         return self
 
@@ -202,25 +201,24 @@ def initUsers():
     """Create database and tables"""
     db.create_all()
     """Tester data for table"""
-    u1 = User(name='Thomas Edison', uid='toby', password='123toby', dob=date(1847, 2, 11))
-    u2 = User(name='Nicholas Tesla', uid='niko', password='123niko')
-    u3 = User(name='Alexander Graham Bell', uid='lex', password='123lex')
-    u4 = User(name='Eli Whitney', uid='whit', password='123whit')
-    u5 = User(name='John Mortensen', uid='jm1021', dob=date(1959, 10, 21))
+    u1 = User(firstName='Kaylee', lastName='Hou', extracurricular='Guitar', hoursPerWeek='5', coachName='N/A')
+    u2 = User(firstName='Theo', lastName='Huntalas', extracurricular='Skateboarding', hoursPerWeek='3', coachName='N/A')
+    u3 = User(firstName='Ellie', lastName='Pang', extracurricular='Soccer', hoursPerWeek='8', coachName='Coach Robby')
+    u4 = User(firstName='Haeryn', lastName='Yu', extracurricular='Kickboxing', hoursPerWeek='2', coachName='Coach Burr')
 
-    users = [u1, u2, u3, u4, u5]
+    users = [u1, u2, u3, u4]
 
     """Builds sample user/note(s) data"""
     for user in users:
         try:
             '''add a few 1 to 4 notes per user'''
             for num in range(randrange(1, 4)):
-                note = "#### " + user.name + " note " + str(num) + ". \n Generated by test data."
+                note = "#### " + user.firstName + " note " + str(num) + ". \n Generated by test data."
                 user.posts.append(Post(id=user.id, note=note, image='ncs_logo.png'))
             '''add user/post data to table'''
             user.create()
         except IntegrityError:
             '''fails with bad or duplicate data'''
             db.session.remove()
-            print(f"Records exist, duplicate email, or error: {user.uid}")
+            print(f"Records exist, duplicate email, or error: {user.firstName}")
             
